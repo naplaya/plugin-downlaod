@@ -10,19 +10,33 @@ class pluginDownload extends Plugin
     
     public function post()
     {
-       /* $f = file_put_contents("my-zip.zip", fopen("http://www.externalsite.com/zipfile.zip", 'r'), LOCK_EX);
-        if(FALSE === $f)
-            die("Couldn't write to file.");
+        if(isset($_POST['install']))
+        {
+             $f = file_put_contents("my-zip.zip", fopen($_POST['install'], 'r'), LOCK_EX);
+            if($f === false)
+                die("Couldn't write to file.");
+
+            $zip = new ZipArchive;
+            $res = $zip->open('my-zip.zip');
+            if ($res === TRUE) {
+              $zip->extractTo(PATH_PLUGINS);
+              $zip->close();
+              //
+            } else {
+              //
+            }
+        }
         
-        $zip = new ZipArchive;
-        $res = $zip->open('my-zip.zip');
-        if ($res === TRUE) {
-          $zip->extractTo('/extract-here');
-          $zip->close();
-          //
-        } else {
-          //
-        }*/
+        
+        
+        
+        
+        
+        
+        
+        
+        
+      
     }
 
 	// Method called on plugin settings on the admin area
@@ -75,9 +89,9 @@ EOF;
        // break;
         
         
-        //if(v3)
-        
-        
+        $download = "";
+        if(!empty($metadata->download_url)) $download = $metadata->download_url;
+        else $download = $metadata->download_url_v2;
         
         $demo = "";
         if(!empty($metadata->demo_url)) $demo = '<a href="'.$metadata->demo_url.'">'.$L->g("Demo").'</a>';
@@ -89,7 +103,7 @@ $line .= <<<EOF
             <div class="mt-1">
 
 
-            <button name="install" class="btn btn-primary my-2" type="submit" value="">{$L->g('Install')}</button>
+            <button name="install" class="btn btn-primary my-2" type="submit" value="{$download}">{$L->g('Install')}</button>
         
 
         
