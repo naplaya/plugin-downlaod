@@ -29,7 +29,8 @@ class pluginDownload extends Plugin
                     //check each folder in root of zip if it contains plugins.php
                     for($i = 0; $i < $zip->numFiles; $i++) 
                     {   
-                        $path = PATH_PLUGIN.'/'.$zip->getNameIndex($i).'/plugin.php';
+                        $path = PATH_PLUGINS.'/'.$zip->getNameIndex($i).'plugin.php';
+                       // die($path);
                         if(file_exists($path))
                         {
                             //get plugin.php to activate it
@@ -37,12 +38,10 @@ class pluginDownload extends Plugin
                             
                             //regex to find class name
                             $re = '/(class) ([a-zA-Z-_])*( extends Plugin)/m';
-                            preg_match_all($re, $content_plugin_file, $matches, PREG_SET_ORDER, 0);
+                            preg_match($re, $content_plugin_file, $matches);
 
                             // Class name of the plugin
-                            $className = explode(" ", $matches[0]);
-
-                            die(print_r($className));
+                            $className = explode(" ", $matches[0]); 
                             
                             //activate found class
                             if(!activatePlugin(trim($className[1]))) $error = -3;
