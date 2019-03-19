@@ -42,6 +42,8 @@ class pluginDownload extends Plugin
                             // Class name of the plugin
                             $className = explode(" ", $matches[0]);
 
+                            die(print_r($className));
+                            
                             //activate found class
                             if(!activatePlugin(trim($className[1]))) $error = -3;
                         } 
@@ -73,6 +75,8 @@ class pluginDownload extends Plugin
                 
                 default:
                 case -9:die("An unexpected error happend (-9)");break;
+                    
+                case 0:break;
             }
             
         }//end isset($_POST['install'])                               
