@@ -1,2 +1,2 @@
-# plugin-downlaod
-Bludit plugin to downlaod install plugins 
+# plugin-download
+Bludit plugin to download, install and activate plugins 
