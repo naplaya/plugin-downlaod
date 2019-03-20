@@ -32,22 +32,12 @@ class pluginDownload extends Plugin
                         $path = PATH_PLUGINS.'/'.$zip->getNameIndex($i).'plugin.php';
                        // die($path);
                         if(file_exists($path))
-                        {
-                            //get plugin.php to activate it
-                            $content_plugin_file = file_get_contents ($path);
-                            
-                            //regex to find class name
-                            $re = '/(class) ([a-zA-Z-_])*( extends Plugin)/m';
-                            preg_match($re, $content_plugin_file, $matches);
-
-                            // Class name of the plugin
-                            $className = explode(" ", $matches[0]); 
-                            
-                            //activate found class
-                            if(!activatePlugin(trim($className[1]))) $error = -3;
+                        { 
+                            //get classname then acivate plugin
+                            if(!activatePlugin($this->getClassNameFromFile($path))) $error = -3;
+                            break;
                         } 
                     }
-              
                 }else
                 {
                     //plugin couldn't extracted
@@ -114,21 +104,39 @@ $tbl_head = <<<EOF
         <tbody>
 EOF;
    
+    $i = 0;
     //create a row for each plugin from api
     foreach ($plugins_available as $item) 
     {
-       
         $meta_file = file_get_contents(str_replace("<name>", $item->name, $base_meta_url), false, $context);
         $metadata = json_decode($meta_file);
         
-        //where plugin can be downloaded and wich version
-        $download = "";
-        if(!empty($metadata->download_url)) $download = $metadata->download_url;
-        else $download = $metadata->download_url_v2;
+            //where plugin can be downloaded and wich version
+            $download = "";
+            if(!empty($metadata->download_url)) $download = $metadata->download_url;
+            else $download = $metadata->download_url_v2;
+        
+        $file_ex = "zip";
+        if($metadata->price_usd >0)
+        {
+            $install = '<a class="btn btn-primary my-2" href="https://plugin.bludit.com">'.$L->g('To buy plugins please visit bludit.com').'</a>';
+            //$install = '<a class="btn btn-primary my-2" href="'.$download.'">'.$L->g('Buy').' $'. $metadata->price_usd.'</a>';
+        }else if(substr($download, -strlen($file_ex)) === $file_ex)
+        {
+            $install = '<button name="install" class="btn btn-primary my-2" type="submit" value="'.$download.'">'.$L->g('Install').'</button>';
+        }else
+        {
+            $install = '<a class="btn btn-primary my-2" href="'.$download.'">'.$L->g('Go to Homepage').'</a>';
+        }
         
         //may it has a demo page
         $demo = "";
         if(!empty($metadata->demo_url)) $demo = '<a href="'.$metadata->demo_url.'">'.$L->g("Demo").'</a>';
+        
+        
+        
+        
+        
         
         //html for table row
 $tbl_row .= <<<EOF
@@ -136,7 +144,7 @@ $tbl_row .= <<<EOF
         <td class="align-middle pt-3 pb-3">
             <div>{$metadata->name}</div>
             <div class="mt-1">
-                <button name="install" class="btn btn-primary my-2" type="submit" value="{$download}">{$L->g('Install')}</button>
+                {$install}
             </div>
         </td>
 
@@ -167,4 +175,33 @@ EOF;
 
 		return $html.$tbl_head.$tbl_row.$tbl_end;
 	}
+    
+    /**
+    * get the class name form file path using token
+    *
+    * @param $filePathName
+    *
+    * @return  mixed
+    */
+    public function getClassNameFromFile($filePathName)
+    {
+        $php_code = file_get_contents($filePathName);
+
+        $classes = array();
+        $tokens = token_get_all($php_code);
+        
+        $count = count($tokens);
+        for ($i = 2; $i < $count; $i++) {
+            if ($tokens[$i - 2][0] == T_CLASS
+                && $tokens[$i - 1][0] == T_WHITESPACE
+                && $tokens[$i][0] == T_STRING
+            ) {
+
+                $class_name = $tokens[$i][1];
+                $classes[] = $class_name;
+            }
+        }
+
+        return $classes[0];
+    }
 }
