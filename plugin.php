@@ -235,50 +235,59 @@ EOF;
     
     public function getPluginsUI(){
       
-        global $L;
+        global $L, $plugins;
         
-        $html  = '  <a class="btn btn-primary mt-2 mb-2" data-toggle="collapse" href="#collapsePluginsDownloaded" role="button" aria-expanded="false" aria-controls="collapsePluginsDownloaded">'.$L->get('Plugins already downloaded').'</a>
-                   
-                    
-                    <div class="collapse" id="collapsePluginsDownloaded">
-                        <div class="card card-body">
+        foreach($plugins['all'] as $plugin){
+
+           
+            //$pl_installed .= '<tr><td>'.$plugin.'</td><td><button name="uninstall" class="btn btn-danger my-2" type="submit" value="'.$plugin.'">'.$L->get('Delete').'</button></td></tr>';
             
-                            <input type="text" class="light-table-filter" data-table="order-table" placeholder="'.$L->get('Type to search...').'">
-                            <script>"use strict"; var LightTableFilter=function (Arr){var filterInput; function _onInputEvent(e){filterInput=e.target; var tables=document.getElementsByClassName(filterInput.getAttribute("data-table")); Arr.forEach.call(tables, function (table){Arr.forEach.call(table.tBodies, function (tbody){Arr.forEach.call(tbody.rows, _filter);});});}function _filter(row){var text=row.textContent.toLowerCase(), val=filterInput.value.toLowerCase(); row.style.display=text.indexOf(val)===-1 ? "none" : "table-row";}return{init: function init(){var inputs=document.getElementsByClassName("light-table-filter"); Arr.forEach.call(inputs, function (input){input.oninput=_onInputEvent;});}};}(Array.prototype); document.addEventListener("readystatechange", function (){if (document.readyState==="complete"){LightTableFilter.init();}}); </script>
-                            <table class="table mt-3 order-table">
-                                <thead>
-                                    <tr>
-                                        <th class="border-bottom-0" scope="col">'.$L->get('Name').'</th>
-                                        <th class="border-bottom-0" scope="col">'.$L->get('Action').'</th>
-                                    </tr>
-                                </thead>
-                            <tbody>';
-        
-        $installedPlugins = glob(PATH_PLUGINS . '/*' , GLOB_ONLYDIR);
-        foreach($installedPlugins as $plugin){
-            $plugin = str_replace(PATH_PLUGINS.'/', '', $plugin);
-            $currentPlugins = str_replace(PATH_PLUGINS, '', PLUGIN_DIR);
-            if($plugin."\\" != $currentTheme){//don't allow to uninstall current theme
-                $html .= '<tr><td>'.$plugin.'</td><td><button name="uninstall" class="btn btn-danger my-2" type="submit" value="'.$plugin.'">'.$L->get('Delete').'</button></td></tr>';
+            $buttons = '<button name="delete" class="btn btn-danger mb-2 mr-2" type="submit" value="'.$plugin->className().'">'.$L->get('Delete').'</button>';
+            
+            
+            if ($plugin->installed()) 
+            {
+                if (method_exists($plugin, 'form')) 
+                {
+                    $buttons .= '<a class="btn btn-primary mb-2 mr-2 " href="'.HTML_PATH_ADMIN_ROOT.'configure-plugin/'.$plugin->className().'"><span class="oi oi-cog" style="font-size: 1em;top:2px;"></span></a>';
+                }
+                $buttons .=  '<a class="btn btn-primary mb-2" href="'.HTML_PATH_ADMIN_ROOT.'uninstall-plugin/'.$plugin->className().'">'.$L->g('Deactivate').'</a>';
+            } else {
+                $buttons .=  '<a class="btn btn-primary mb-2" href="'.HTML_PATH_ADMIN_ROOT.'install-plugin/'.$plugin->className().'">'.$L->g('Activate').'</a>';
             }
+            
+            
+            
+            
+            $pl_installed .= '<tr id="'.$plugin->className().'" '.($plugin->installed()?'class="bg-light"':'').'>
+                <td class="align-middle pt-3 pb-3"><div>'.$plugin->name().'</div>
+                    <div class="mt-1">
+                        '.$buttons.'
+                    </div>
+                </td>
+                <td class="align-middle d-none d-sm-table-cell">
+                    <div>'.$plugin->description().'</div>
+                </td>
+                <td class="text-center align-middle d-none d-lg-table-cell"><span>'.$plugin->version().'</span></td>
+                <td class="text-center align-middle d-none d-lg-table-cell"><a target="_blank" href="'.$plugin->website().'">'.$plugin->author().'</a></td>
+                </tr>';
+            
+            
+            
+    
         }
         
-        $html .= '</tbody></table></div></div>';
-        
-        
-        
-        $html  .= '  <div><a onclick="loadPlugins()" class="btn btn-primary mt-2 mb-2" data-toggle="collapse" href="#collapsePluginsAvailable" role="button" aria-expanded="false" aria-controls="collapsePluginsAvailable">'.$L->get('Plugins available').'</a></div>
+        $html  .= '  
                    
                     
-                    <div class="collapse" id="collapsePluginsAvailable">
-                        <div class="card card-body">
-                        
-                            
-                            <input type="text" class="light-table-filter" data-table="order-table" placeholder="Search for anything..">
+                            <div class="d-flex">
+                                <input style="flex-grow:1;width:unset;" type="text" class="light-table-filter mt-2 mr-2" data-table="order-table" placeholder="Search for anything..">
+                                <a style="color:white;" onclick="loadPlugins(true);$(\'#lpbb\').remove()" class="btn btn-primary mt-2">'.$L->get('Load plugins available').'</a>
+                            </div>
                             <script>"use strict"; var LightTableFilter=function (Arr){var filterInput; function _onInputEvent(e){filterInput=e.target; var tables=document.getElementsByClassName(filterInput.getAttribute("data-table")); Arr.forEach.call(tables, function (table){Arr.forEach.call(table.tBodies, function (tbody){Arr.forEach.call(tbody.rows, _filter);});});}function _filter(row){var text=row.textContent.toLowerCase(), val=filterInput.value.toLowerCase(); row.style.display=text.indexOf(val)===-1 ? "none" : "table-row";}return{init: function init(){var inputs=document.getElementsByClassName("light-table-filter"); Arr.forEach.call(inputs, function (input){input.oninput=_onInputEvent;});}};}(Array.prototype); document.addEventListener("readystatechange", function (){if (document.readyState==="complete"){LightTableFilter.init();}}); </script>
                             
                             
-                            <table id="plugins-available-table" class="table mt-3 order-table">
+                            <table id="plugins-available-table" class="table mt-1 order-table">
                                 <thead>
                                     <tr>
                                         <th class="border-bottom-0 w-25" scope="col">Name</th>
@@ -287,13 +296,12 @@ EOF;
                                         <th class="text-center border-bottom-0 d-none d-lg-table-cell" scope="col">Author</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody>'.$pl_installed.'
                                 </tbody>
                             </table>
+                            <a id="lpbb" style="color:white;" onclick="loadPlugins();$(\'#lpbb\').remove()" class="btn btn-primary my-2">'.$L->get('Load plugins available').'</a>
                             
-                            
-                        </div>
-                    </div>';
+                       ';
         return $html .'
         
 

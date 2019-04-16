@@ -29,9 +29,12 @@
 
 var pluginsAlreadyLoaded = false;
 
-function loadPlugins()
+function loadPlugins(reload)
 {
-    if(pluginsAlreadyLoaded)return;
+    reload = typeof reload !== 'undefined' ? reload : false;
+    
+    if(pluginsAlreadyLoaded && reload == false )return;
+    else $('tr.plugin-available').remove();
 
     var base_url = "https://api.github.com/repos/bludit/plugins-repository/contents/items";
     var base_meta_url = "https://raw.githubusercontent.com/bludit/plugins-repository/master/items/";
@@ -51,7 +54,7 @@ function loadPlugins()
                 var plugin_description = data.description;
                 var plugin_author_username = data.author_username;
 
-                var new_table_row = `<tr>
+                var new_table_row = `<tr class="plugin-available">
                 <td class="align-middle pt-3 pb-3"><div>`+plugin_name+`</div><div class="mt-1"><button name="install" class="btn btn-primary my-2" type="submit" value="`+plugin_download+`">Install</button></div></td>
                 <td class="align-middle d-none d-sm-table-cell"><div>`+plugin_description+`</div><a href="`+plugin_information_url+`" target="_blank">More information</a></td>
                 <td class="text-center align-middle d-none d-lg-table-cell"><span>`+plugin_version+`</span></td>
