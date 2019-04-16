@@ -1,6 +1,6 @@
 <?php
 
-class pluginDownload extends Plugin 
+class extensionManager extends Plugin 
 {    
  	public function init()
 	{
@@ -29,12 +29,12 @@ class pluginDownload extends Plugin
                     //check each folder in root of zip if it contains plugins.php
                     for($i = 0; $i < $zip->numFiles; $i++) 
                     {   
-                        $path = PATH_PLUGINS.'/'.$zip->getNameIndex($i).'plugin.php';
-                       // die($path);
+                        $path = PATH_PLUGINS.DS.$zip->getNameIndex($i).'plugin.php';
                         if(file_exists($path))
                         { 
                             //get classname then acivate plugin
-                            if(!activatePlugin($this->getClassNameFromFile($path))) $error = -3;
+                            $classname = $this->getClassNameFromFile($path);
+                            if(!activatePlugin($classname)) $error = -3;
                             break;
                         } 
                     }
@@ -76,12 +76,34 @@ class pluginDownload extends Plugin
 	{
 		global $L;
         
-        $base_url = "https://api.github.com/repos/bludit/plugins-repository/contents/items";
-        $base_meta_url = "https://raw.githubusercontent.com/bludit/plugins-repository/master/items/<name>/metadata.json";
+        
+        $html .= $this->includeJS('script.js');
 
-		$html  = '<div class="alert alert-primary" role="alert">';
-		$html .= $this->description();
-		$html .= '</div>';
+        $plugins_ui  = $this->getPluginsUI();
+        $themes_ui   = $this->getThemesUI();
+        $settings_ui = $this->getSettingsUI();
+        
+        
+        $html .= 
+            '
+            
+            <div class="alert alert-primary" role="alert">
+                <strong>Info: </strong> This plugin requires JS to be enabled
+            </div>
+            
+            <nav>
+                <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                        <a class="nav-item nav-link active" id="nav-plugins-tab" data-toggle="tab" href="#nav-plugins" role="tab" aria-controls="nav-home" aria-selected="true">'.$L->get('Plugins').'</a>
+                        <a class="nav-item nav-link" id="nav-themens-tab" data-toggle="tab" href="#nav-themes" role="tab" aria-controls="nav-profile" aria-selected="false">'.$L->get('Themes').'</a>
+                        <a class="nav-item nav-link" id="nav-settings-tab" data-toggle="tab" href="#nav-settings" role="tab" aria-controls="nav-contact" aria-selected="false">'.$L->get('Settings').'</a>
+                </div>
+            </nav>
+            <div class="tab-content" id="nav-tabContent">
+                <div class="tab-pane fade show active" id="nav-plugins" role="tabpanel" aria-labelledby="nav-home-tab">'.$plugins_ui.'</div>
+                <div class="tab-pane fade" id="nav-themes" role="tabpanel" aria-labelledby="nav-profile-tab">'.$themes_ui.'</div>
+                <div class="tab-pane fade" id="nav-settings" role="tabpanel" aria-labelledby="nav-contact-tab">'.$settings_ui.'</div>
+            </div>';
+        /*
 
         //agent to download from api
         $opts = ['http' => ['method' => 'GET','header' => ['User-Agent: PHP']]];
@@ -172,9 +194,15 @@ $tbl_end = <<<EOF
         </tbody>
     </table>
 EOF;
-
+*/
 		return $html.$tbl_head.$tbl_row.$tbl_end;
 	}
+    
+    // Add a link to this plugin to the adminSidebar
+    public function adminSidebar(){
+        //global $L;
+        return '<li class="nav-item"><a class="nav-link" href="'.HTML_PATH_ADMIN_ROOT.'configure-plugin/extensionManager">'. 'Extension manager' .'</a></li>';
+    }
     
     /**
     * get the class name form file path using token
@@ -203,5 +231,82 @@ EOF;
         }
 
         return $classes[0];
+    }
+    
+    public function getPluginsUI(){
+      
+        global $L;
+        
+        $html  = '  <a class="btn btn-primary mt-2 mb-2" data-toggle="collapse" href="#collapsePluginsDownloaded" role="button" aria-expanded="false" aria-controls="collapsePluginsDownloaded">'.$L->get('Plugins already downloaded').'</a>
+                   
+                    
+                    <div class="collapse" id="collapsePluginsDownloaded">
+                        <div class="card card-body">
+            
+                            <input type="text" class="light-table-filter" data-table="order-table" placeholder="'.$L->get('Type to search...').'">
+                            <script>"use strict"; var LightTableFilter=function (Arr){var filterInput; function _onInputEvent(e){filterInput=e.target; var tables=document.getElementsByClassName(filterInput.getAttribute("data-table")); Arr.forEach.call(tables, function (table){Arr.forEach.call(table.tBodies, function (tbody){Arr.forEach.call(tbody.rows, _filter);});});}function _filter(row){var text=row.textContent.toLowerCase(), val=filterInput.value.toLowerCase(); row.style.display=text.indexOf(val)===-1 ? "none" : "table-row";}return{init: function init(){var inputs=document.getElementsByClassName("light-table-filter"); Arr.forEach.call(inputs, function (input){input.oninput=_onInputEvent;});}};}(Array.prototype); document.addEventListener("readystatechange", function (){if (document.readyState==="complete"){LightTableFilter.init();}}); </script>
+                            <table class="table mt-3 order-table">
+                                <thead>
+                                    <tr>
+                                        <th class="border-bottom-0" scope="col">'.$L->get('Name').'</th>
+                                        <th class="border-bottom-0" scope="col">'.$L->get('Action').'</th>
+                                    </tr>
+                                </thead>
+                            <tbody>';
+        
+        $installedPlugins = glob(PATH_PLUGINS . '/*' , GLOB_ONLYDIR);
+        foreach($installedPlugins as $plugin){
+            $plugin = str_replace(PATH_PLUGINS.'/', '', $plugin);
+            $currentPlugins = str_replace(PATH_PLUGINS, '', PLUGIN_DIR);
+            if($plugin."\\" != $currentTheme){//don't allow to uninstall current theme
+                $html .= '<tr><td>'.$plugin.'</td><td><button name="uninstall" class="btn btn-danger my-2" type="submit" value="'.$plugin.'">'.$L->get('Delete').'</button></td></tr>';
+            }
+        }
+        
+        $html .= '</tbody></table></div></div>';
+        
+        
+        
+        $html  .= '  <div><a onclick="loadPlugins()" class="btn btn-primary mt-2 mb-2" data-toggle="collapse" href="#collapsePluginsAvailable" role="button" aria-expanded="false" aria-controls="collapsePluginsAvailable">'.$L->get('Plugins available').'</a></div>
+                   
+                    
+                    <div class="collapse" id="collapsePluginsAvailable">
+                        <div class="card card-body">
+                        
+                            
+                            <input type="text" class="light-table-filter" data-table="order-table" placeholder="Search for anything..">
+                            <script>"use strict"; var LightTableFilter=function (Arr){var filterInput; function _onInputEvent(e){filterInput=e.target; var tables=document.getElementsByClassName(filterInput.getAttribute("data-table")); Arr.forEach.call(tables, function (table){Arr.forEach.call(table.tBodies, function (tbody){Arr.forEach.call(tbody.rows, _filter);});});}function _filter(row){var text=row.textContent.toLowerCase(), val=filterInput.value.toLowerCase(); row.style.display=text.indexOf(val)===-1 ? "none" : "table-row";}return{init: function init(){var inputs=document.getElementsByClassName("light-table-filter"); Arr.forEach.call(inputs, function (input){input.oninput=_onInputEvent;});}};}(Array.prototype); document.addEventListener("readystatechange", function (){if (document.readyState==="complete"){LightTableFilter.init();}}); </script>
+                            
+                            
+                            <table id="plugins-available-table" class="table mt-3 order-table">
+                                <thead>
+                                    <tr>
+                                        <th class="border-bottom-0 w-25" scope="col">Name</th>
+                                        <th class="border-bottom-0 d-none d-sm-table-cell" scope="col">Description</th>
+                                        <th class="text-center border-bottom-0 d-none d-lg-table-cell" scope="col">Version</th>
+                                        <th class="text-center border-bottom-0 d-none d-lg-table-cell" scope="col">Author</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                            
+                            
+                        </div>
+                    </div>';
+        return $html .'
+        
+
+        
+        
+        ';
+    }
+    
+    public function getThemesUI(){
+        return "";
+    }
+    
+    public function getSettingsUI(){
+        return "";
     }
 }
