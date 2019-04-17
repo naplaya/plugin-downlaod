@@ -260,7 +260,7 @@ EOF;
             
             
             $pl_installed .= '<tr id="'.$plugin->className().'" '.($plugin->installed()?'class="bg-light"':'').'>
-                <td class="align-middle pt-3 pb-3"><div>'.$plugin->name().'</div>
+                <td class="align-middle pt-3 pb-3"><div class="pla-name">'.$plugin->name().'</div>
                     <div class="mt-1">
                         '.$buttons.'
                     </div>
@@ -287,7 +287,7 @@ EOF;
                             <script>"use strict"; var LightTableFilter=function (Arr){var filterInput; function _onInputEvent(e){filterInput=e.target; var tables=document.getElementsByClassName(filterInput.getAttribute("data-table")); Arr.forEach.call(tables, function (table){Arr.forEach.call(table.tBodies, function (tbody){Arr.forEach.call(tbody.rows, _filter);});});}function _filter(row){var text=row.textContent.toLowerCase(), val=filterInput.value.toLowerCase(); row.style.display=text.indexOf(val)===-1 ? "none" : "table-row";}return{init: function init(){var inputs=document.getElementsByClassName("light-table-filter"); Arr.forEach.call(inputs, function (input){input.oninput=_onInputEvent;});}};}(Array.prototype); document.addEventListener("readystatechange", function (){if (document.readyState==="complete"){LightTableFilter.init();}}); </script>
                             
                             
-                            <table id="plugins-available-table" class="table mt-1 order-table">
+                            <table id="plugins-table" class="table mt-1 order-table">
                                 <thead>
                                     <tr>
                                         <th class="border-bottom-0 w-25" scope="col">Name</th>
