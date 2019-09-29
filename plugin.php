@@ -217,7 +217,7 @@ class extensionManager extends Plugin
             {
                 if (method_exists($plugin, 'form')) 
                 {
-                    $buttons .= '<a class="btn btn-primary mb-2 mr-2 " href="'.HTML_PATH_ADMIN_ROOT.'configure-plugin/'.$plugin->className().'"><span class="oi oi-cog" style="font-size: 1em;top:2px;"></span></a>';
+                    $buttons .= '<a class="btn btn-primary mb-2 mr-2 " href="'.HTML_PATH_ADMIN_ROOT.'configure-plugin/'.$plugin->className().'"><span class="fa fa-cog" style="font-size: 1em;top:2px;"></span></a>';
                 }
                 $buttons .=  '<a class="btn btn-primary mb-2" href="'.HTML_PATH_ADMIN_ROOT.'uninstall-plugin/'.$plugin->className().'">'.$L->g('Deactivate').'</a>';
             } else {
